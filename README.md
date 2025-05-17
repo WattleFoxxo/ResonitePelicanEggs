@@ -1,8 +1,8 @@
 # ResonitePelicanEggs
-x86 and arm Pelican/Pterodactyl eggs for Resonite
+x86 and arm Pelican/Pterodactyl eggs for the Resonite Headless
 
 ## Eggs:
-### Arm64
+### arm
 `egg-resonite-arm.json`
-### x86_64
+### x86
 `Will add soon :3`
