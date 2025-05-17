@@ -1,2 +1,2 @@
-# Resonite-pterodactyl-eggs
-Mono and Dotnet Pterodactyl eggs for Resonite
+# ResonitePelicanEggs
+x86 and arm Pelican/Pterodactyl eggs for Resonite
