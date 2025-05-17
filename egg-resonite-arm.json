@@ -1,0 +1,75 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PANEL",
+    "meta": {
+        "version": "PLCN_v1",
+        "update_url": null
+    },
+    "exported_at": "2025-05-17T02:59:33+00:00",
+    "name": "Resonite",
+    "author": "wattle@wattlefoxxo.au",
+    "uuid": "c98a0386-d5b5-42dd-81e7-55d1efb2fd5b",
+    "description": "Resonite Headless Egg for arm. By WattleFoxxo.",
+    "features": [],
+    "docker_images": {
+        "Dotnet 9.0": "ghcr.io\/parkervcp\/yolks:dotnet_9"
+    },
+    "file_denylist": [],
+    "startup": "dotnet Headless\/Resonite.dll -HeadlessConfig Config\/Config.json -Logs Logs\/",
+    "config": {
+        "files": "{}",
+        "startup": "{\n    \"done\": \"Headless running...\"\n}",
+        "logs": "{}",
+        "stop": "shutdown"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n\r\n# Resonite Headless installer script by WattleFoxxo (wattle@wattlefoxxo.au)\r\n#\r\n# MIT License\r\n#\r\n# Copyright (c) 2025 WattleFoxxo\r\n#\r\n# Permission is hereby granted, free of charge, to any person obtaining a copy\r\n# of this software and associated documentation files (the \"Software\"), to deal\r\n# in the Software without restriction, including without limitation the rights\r\n# to use, copy, modify, merge, publish, distribute, sublicense, and\/or sell\r\n# copies of the Software, and to permit persons to whom the Software is\r\n# furnished to do so, subject to the following conditions:\r\n#\r\n# The above copyright notice and this permission notice shall be included in all\r\n# copies or substantial portions of the Software.\r\n#\r\n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\r\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\r\n# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\r\n# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\r\n# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\r\n# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\r\n# SOFTWARE.\r\n\r\n# Static definitions\r\n\r\nAPP_ID=2519830\r\nAPP_BRANCH=\"headless\"\r\n\r\n# Install requierments\r\n\r\napt update\r\napt install -y wget curl jq libarchive-tools libicu-dev libkrb5-3 zlib1g libssl-dev\r\n\r\nmkdir -p \/usr\/share\/dotnet\r\ncd \/usr\/share\/dotnet\r\n\r\ncurl -sL \"https:\/\/builds.dotnet.microsoft.com\/dotnet\/Sdk\/8.0.409\/dotnet-sdk-8.0.409-linux-arm64.tar.gz\" -o - | bsdtar -xf -\r\nln -s \/usr\/share\/dotnet\/dotnet \/usr\/bin\/dotnet\r\n\r\ndotnet tool install --global ilspycmd\r\nexport PATH=\"$PATH:$HOME\/.dotnet\/tools\"\r\n\r\n#Download Resonite\r\n\r\nmkdir -p \/mnt\/tmp\/DepotDownloader\r\ncd \/mnt\/tmp\/DepotDownloader\r\n\r\nDEPOTDOWNLOADER_URL=$(curl -s https:\/\/api.github.com\/repos\/SteamRE\/DepotDownloader\/releases\/latest | jq -r '.assets[] | select(.name==\"DepotDownloader-linux-arm64.zip\") | .browser_download_url') #'\r\ncurl -sL \"$DEPOTDOWNLOADER_URL\" -o - | bsdtar -xf -\r\n\r\nchmod +x DepotDownloader\r\n.\/DepotDownloader -app $APP_ID -username $STEAM_USER -password $STEAM_PASSWORD -branch $APP_BRANCH -branchpassword $BETA_CODE -os linux -dir \/mnt\/server\r\n\r\n# Resonite files setup\r\n\r\ncd \/mnt\/server\r\n\r\nmkdir -p \/mnt\/server\/Config\r\nmkdir -p \/mnt\/server\/Logs\r\n\r\ncp -n \/mnt\/server\/Headless\/Config\/DefaultConfig.json \/mnt\/server\/Config\/Config.json\r\n\r\n# Native libraries\r\n\r\nmkdir -p \/mnt\/tmp\/ArmLibraries\r\ncd \/mnt\/tmp\/ArmLibraries\r\n\r\ncurl -sL \"https:\/\/i.j4.lc\/resonite\/libraries-arm.zip\" -o - | bsdtar -xf -\r\n\r\nfind \/mnt\/tmp\/ArmLibraries -type f -exec cp {} \/mnt\/server\/Headless\/ \\;\r\n\r\nmv \/mnt\/server\/Headless\/libfreetype.so \/mnt\/server\/Headless\/libfreetype6.so\r\n\r\n# Decompile and patch Steamworks\r\n\r\nmkdir -p \/mnt\/tmp\/SteamworksDecomp\r\ncd \/mnt\/tmp\/SteamworksDecomp\r\n\r\nilspycmd \/mnt\/server\/Headless\/Steamworks.NET.dll -r .\/ -p -o \/mnt\/tmp\/SteamworksDecomp\r\n\r\nif grep -q \"<PlatformTarget>\" \/mnt\/tmp\/SteamworksDecomp\/Steamworks.NET.csproj; then sed -i 's|<PlatformTarget>.*<\/PlatformTarget>|<PlatformTarget>AnyCPU<\/PlatformTarget>|' \/mnt\/tmp\/SteamworksDecomp\/Steamworks.NET.csproj; else sed -i '\/<PropertyGroup>\/a \\ \\ \\ \\ <PlatformTarget>AnyCPU<\/PlatformTarget>' \/mnt\/tmp\/SteamworksDecomp\/Steamworks.NET.csproj; fi\r\ndotnet build -c Release\r\n\r\ncp -f \/mnt\/tmp\/SteamworksDecomp\/bin\/Release\/netstandard2.1\/Steamworks.NET.dll \/mnt\/server\/Headless\/Steamworks.NET.dll\r\n\r\necho \"Installation Complete!\"\r\n",
+            "container": "debian:bookworm",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Steam Username",
+            "description": "Your Steam username",
+            "env_variable": "STEAM_USER",
+            "default_value": "",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "required",
+                "string",
+                "max:128"
+            ],
+            "sort": 1
+        },
+        {
+            "name": "Steam Password",
+            "description": "Your Steam password",
+            "env_variable": "STEAM_PASSWORD",
+            "default_value": "",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "required",
+                "string",
+                "max:128"
+            ],
+            "sort": 2
+        },
+        {
+            "name": "Steam Beta Code",
+            "description": "The Steam beta code from the \/headlessCode command on the Resonite bot",
+            "env_variable": "BETA_CODE",
+            "default_value": "",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "required",
+                "string",
+                "max:64"
+            ],
+            "sort": 3
+        }
+    ]
+}
